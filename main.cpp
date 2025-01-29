@@ -1,43 +1,50 @@
 #include <iostream>
-#include <cmath>
+#include <iomanip>
 
-using namespace std;
-
-// will need to fix to read a string containing either '+' or '-'
-float convert_to_decimal_odds(float american_odds)
+double convert_to_decimal_odds(int american_odds)
 {
+    return (american_odds > 0) ? (1.0 + static_cast<double>(american_odds) / 100.0)
+                                : (1.0 + 100.0 / -static_cast<double>(american_odds));
     float decimal_odds;
-    if (american_odds > 0)
-    {
-        return decimal_odds = (american_odds/100) + 1;
-    }
-    else {
-        return decimal_odds = 1 + (100/abs(american_odds));
-    }
+
 }
 
-float net_odds(float odds)
-{
-    return odds - 1;
-}
-
-float kelly_formula(float p, float b)
-{
-    float fraction_of_bankroll = ((p * b) - 1) / b;
-    return fraction_of_bankroll;
+double kelly_fraction(double p, double decimal_odds) {
+    double b = decimal_odds - 1.0;
+    double q = 1.0 - p;
+    double f = ((b * p - q) / b > 0) ? (b * p - q) / b : 0.0;  // Ensure non-negative fraction
+    return f;
 }
 
 int main()
 {
-    float odds = convert_to_decimal_odds(-130);
-    cout << "American odds of -130 converts to: " << odds << endl;
-    
-    float b = net_odds(odds);
-    cout << "net odds is " << b << endl;
+    double bankroll, user_probability;
+    int american_odds;
 
+    // input bankroll
+    std::cout << "Enter initial bankroll: $";
+    std::cin >> bankroll;
 
-    float kelly = kelly_formula(0.53, b);
-    cout << "kelly formula is: " << kelly << endl;
+    // input probabilty
+    std::cout << "Enter your expert (opinion) for the probabilty of win: %";
+    std::cin >> user_probability;
+    user_probability /= 100.0;
 
+    // enter sportsbook odds
+    std::cout << "Enter sportsbook odds: ";
+    std::cin >> american_odds;
+
+    // convert odds and calculate kelly criterion fraction
+    double decimal_odds = convert_to_decimal_odds(american_odds);
+    double f = kelly_fraction(user_probability, decimal_odds);
+   
+    std::cout << std::fixed << std::setprecision(4);
+    std::cout << "\n Sportsbook Odds" << american_odds << "\n";
+    std::cout << "Decimal Odds: " << decimal_odds << "\n";
+    std::cout << "Your Estimated Probability of Win: " << user_probability * 100 << "%\n";
+    std::cout << "Kelly Criterion (fraction of bankroll to wager): " << f * 100 << "%\n";
+
+    std::cout << std::fixed << std::setprecision(2);
+    std::cout << "Recommended Wager Amount: $" << f * bankroll << "\n";
     return 0;
 }
